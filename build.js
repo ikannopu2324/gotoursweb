@@ -50,6 +50,9 @@ const tours = [
 // All testimonials pulled verbatim from gotours.org/testimonials (see testimonials.json)
 const testimonials = require('./testimonials.json');
 
+// Popular trips with full day-by-day itineraries (see featured-trips.js)
+const featured = require('./featured-trips.js');
+
 const faqs = [
   ['What makes GO Tours different from other student travel companies?', 'GO Tours is built around purpose-driven, educational travel with personalized design and top-of-the-line trip planning, materials, and service—without the inflated costs of the large tour providers.'],
   ['Can our school’s trip be customized?', 'Every GO Tour is built from the ground up around your school’s goals, grade level, curriculum, and desired destinations, tailored to highlight specific themes.'],
@@ -85,6 +88,9 @@ const ICONS={
  shield:'<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/>',
  monitor:'<rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/>',
  arrow:'<path d="M7 7h10v10"/><path d="M7 17 17 7"/>',
+ bus:'<path d="M8 6v6"/><path d="M15 6v6"/><path d="M2 12h19.6"/><path d="M18 18h3s.5-1.7.8-2.8c.1-.4.2-.8.2-1.2 0-.4-.1-.8-.2-1.2l-1.4-5C20.1 6.8 19.1 6 18 6H4a2 2 0 0 0-2 2v10h3"/><circle cx="7" cy="18" r="2"/><path d="M9 18h5"/><circle cx="16" cy="18" r="2"/>',
+ shirt:'<path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/>',
+ heart:'<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>',
  star:'<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
 };
 const ico=(n,fill)=>'<svg viewBox="0 0 24 24" width="'+(fill?16:28)+'" height="'+(fill?16:28)+'" fill="'+(fill?'currentColor':'none')+'" stroke="currentColor" stroke-width="'+(fill?1:1.6)+'" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+ICONS[n]+'</svg>';
@@ -99,7 +105,7 @@ const nav = (active) => `
   <ul class="menu">
     <li><a href="about.html" class="${active === 'about' ? 'active' : ''}">About</a></li>
     <li class="has-sub"><a href="destinations.html" class="${active === 'dest' ? 'active' : ''}">Destinations</a>
-      <ul class="sub">${tours.map(t => `<li><a href="${t.slug}.html">${t.name}</a></li>`).join('')}</ul></li>
+      <ul class="sub">${featured.map(f => `<li><a href="${f.slug}.html"><b>${f.name}</b></a></li>`).join('')}${tours.map(t => `<li><a href="${t.slug}.html">${t.name}</a></li>`).join('')}</ul></li>
     <li><a href="go-serve.html" class="${active === 'serve' ? 'active' : ''}">GO Serve</a></li>
     <li><a href="tour-planning.html" class="${active === 'plan' ? 'active' : ''}">Tour Planning</a></li>
     <li class="has-sub"><a href="faqs.html">Resources</a>
@@ -157,6 +163,15 @@ const incItems = [['plane', 'Airfare & transportation'], ['bed', 'Hotels'], ['ut
   ['user', 'Full-time Tour Director'], ['map', 'Expert local guides'], ['book', 'Custom educational Tour Book'], ['shield', 'Basic travel insurance'], ['monitor', 'Online registration portal']];
 const includes = `<div class="includes">${incItems.map(([i, t]) => `<div class="inc reveal"><i>${ico(i)}</i>${t}</div>`).join('')}</div>`;
 
+const scheduleUrl = (f) => `get-a-quote.html?trip=${f.slug}`;
+const featuredBlock = (f) => `
+<section class="dark" style="padding-top:0" id="${f.slug}-feature"><div class="wrap itin">
+  <a class="itin-img feat-img reveal" href="${f.slug}.html" aria-label="${f.name} itinerary">${f.itinerary.slice(1, 5).map(d => `<img src="images/${f.dir}/${d.img}" alt="${d.alt}" loading="lazy">`).join('')}</a>
+  <div><span class="eyebrow">Popular itinerary · ${f.days}</span><h2>${f.name}</h2><p class="feat-route">${f.route}</p>
+    <ol class="days days-full">${f.itinerary.map((d, i) => `<li><a href="${f.slug}.html#day-${i + 1}"><b>Day ${i + 1}: ${d.title}</b><span>${d.sub}</span></a></li>`).join('')}</ol>
+    <div class="btn-row" style="margin-top:0"><a class="btn white" href="${f.slug}.html">See the full itinerary</a><a class="btn light" href="${scheduleUrl(f)}">Schedule this trip for my group</a></div></div>
+</div></section>`;
+
 // ---------- pages ----------
 // HOME
 page('index.html', {
@@ -199,15 +214,7 @@ page('index.html', {
   </div>
 </div></section>
 
-<section class="dark" style="padding-top:0"><div class="wrap itin">
-  <div class="itin-img reveal"><img src="images/eastcoast.jpg" alt="" loading="lazy"></div>
-  <div><span class="eyebrow">What you’ll do</span><h2>Explore a sample itinerary</h2>
-    <ul class="days">
-      <li><b>Day 1: Travel to Washington, DC</b><span>Meet your Tour Director and begin your journey</span></li>
-      <li><b>Day 2: Monuments & memorials</b><span>Walk the National Mall with expert local guides</span></li>
-      <li><b>Day 3: Museums & the Capitol</b><span>Hands-on learning tied to your Tour Book</span></li>
-    </ul><a class="btn white" href="washington-dc.html">View full itinerary</a></div>
-</div></section>
+${featured.map(featuredBlock).join('')}
 
 <section id="includes"><div class="wrap center"><h2>Your experience includes</h2>${includes}
   <div class="btn-row"><a class="btn" href="tour-planning.html">View more</a></div></div></section>
@@ -265,6 +272,54 @@ tours.forEach(t => {
   <aside class="side"><h3>Plan your ${t.name} trip</h3><p>Talk to an advisor or request a quote. We’ll build an itinerary around your goals.</p>
     <a class="btn primary" href="get-a-quote.html">Get a Quote</a> <a class="btn" style="margin-top:10px" href="contact.html">Talk to an Advisor</a></aside>
 </div></section>${cta()}`,
+  });
+});
+
+// FEATURED TRIP PAGES (full day-by-day itinerary)
+featured.forEach(f => {
+  const img = (n) => `images/${f.dir}/${n}`;
+  page(`${f.slug}.html`, {
+    title: f.name, desc: `${f.tagline} ${f.route}.`, active: 'dest',
+    body: `${pageHero(`${f.dir}/${f.hero}`, 'Popular itinerary', f.name, f.tagline,
+      `<div class="facts"><span>${f.days}</span><span>${f.route}</span><span>${f.group}</span></div>
+      <div class="btn-row"><a class="btn primary" href="${scheduleUrl(f)}">Schedule this trip for my group</a><a class="btn light" href="#day-1">See the day-by-day</a></div>`)}
+<nav class="daynav" aria-label="Trip sections"><div class="wrap">
+  <a href="#overview">Overview</a><a href="#included">What’s included</a>${f.itinerary.map((d, i) => `<a href="#day-${i + 1}">Day ${i + 1}</a>`).join('')}<a href="#gallery">Photos</a>
+</div></nav>
+
+<section id="overview"><div class="wrap two">
+  <div><span class="eyebrow">About this trip</span><h2>An unforgettable journey through American history</h2>${f.about.map(p => `<p>${p}</p>`).join('')}</div>
+  <aside class="side glance"><h3>Trip at a glance</h3>
+    <dl><dt>Length</dt><dd>${f.days}</dd><dt>Route</dt><dd>${f.route}</dd><dt>Group size</dt><dd>${f.group}</dd><dt>Ideal for</dt><dd>${f.audience}</dd><dt>Guide</dt><dd>Licensed Christian Tour Guide</dd></dl>
+    <ol class="mini-days">${f.itinerary.map((d, i) => `<li><a href="#day-${i + 1}"><b>Day ${i + 1}</b> ${d.sub}</a></li>`).join('')}</ol>
+    <a class="btn primary" href="${scheduleUrl(f)}">Schedule this trip for my group</a></aside>
+</div></section>
+
+<section id="included" style="background:var(--sand)"><div class="wrap">
+  <div class="center"><span class="eyebrow">What’s included</span><h2>Everything handled, start to finish</h2></div>
+  <div class="inc-grid">${f.included.map(([i, h, t]) => `<div class="inc-card reveal"><i>${ico(i)}</i><div><b>${h}</b><span>${t}</span></div></div>`).join('')}</div>
+  <div class="not-inc"><b>Not included:</b> ${f.excluded.map(([h, t]) => t ? `${h} <span>(${t.toLowerCase()})</span>` : h).join(' · ')}</div>
+</div></section>
+
+<section id="itinerary"><div class="wrap">
+  <div class="center"><span class="eyebrow">Daily itinerary</span><h2>Day by day</h2><p class="lead" style="margin-top:16px">Here’s exactly how this trip unfolds. Every GO Tour can be adjusted to fit your group’s dates, pacing, and learning goals.</p></div>
+  <div class="itin-days">${f.itinerary.map((d, i) => `
+    <article class="iday" id="day-${i + 1}">
+      <figure class="iday-img reveal"><img src="${img(d.img)}" alt="${d.alt}" loading="lazy"><figcaption>Day ${i + 1}</figcaption></figure>
+      <div class="iday-tx"><span class="eyebrow">Day ${i + 1} · ${d.sub}</span><h3>${d.title}</h3>
+        <ul class="stops" aria-label="Day ${i + 1} stops">${d.stops.map(s => `<li>${s}</li>`).join('')}</ul>
+        ${d.text.map(p => `<p>${p}</p>`).join('')}</div>
+    </article>`).join('')}</div>
+</div></section>
+
+<section id="gallery" style="padding-top:0"><div class="wrap">
+  <div class="center"><span class="eyebrow">Photo gallery</span><h2>Moments from this trip</h2></div>
+  <div class="gallery" data-lightbox>${f.gallery.map(([g, a]) => `<a href="${img(g)}"><img src="${img(g)}" alt="${a}" loading="lazy"></a>`).join('')}</div>
+</div></section>
+
+<section class="cta" id="schedule"><div class="wrap"><span class="eyebrow">Bring this trip to your students</span><h2>Schedule the ${f.short} for your group</h2>
+  <p>Start from this proven itinerary. We’ll tailor the dates, pacing, and stops to your school or homeschool group, then handle every detail.</p>
+  <div class="btn-row" style="justify-content:center"><a class="btn primary" href="${scheduleUrl(f)}">Schedule this trip for my group</a><a class="btn light" href="contact.html">Talk to an Advisor</a></div></div></section>`,
   });
 });
 
@@ -347,7 +402,7 @@ const formFields = (quote) => `
 <div class="row"><div><label>First name</label><input required name="first"></div><div><label>Last name</label><input required name="last"></div></div>
 <div class="row"><div><label>Email</label><input required type="email" name="email"></div><div><label>Phone</label><input type="tel" name="phone"></div></div>
 <div class="row"><div><label>School / organization</label><input name="school"></div><div><label>Role</label><select name="role"><option>Administrator</option><option>Teacher / Sponsor</option><option>Parent</option><option>Homeschool leader</option><option>Other</option></select></div></div>
-${quote ? `<div class="row"><div><label>Destination</label><select name="dest">${tours.map(t => `<option>${t.name}</option>`).join('')}</select></div><div><label>Approx. group size</label><input name="size"></div></div><div class="row"><div><label>Preferred travel dates</label><input name="dates"></div><div><label>Grade levels</label><input name="grades"></div></div>` : ''}
+${quote ? `<div class="row"><div><label>Destination</label><select name="dest"><option value="">Choose a destination</option>${featured.map(f => `<option data-trip="${f.slug}">${f.name}</option>`).join('')}${tours.map(t => `<option>${t.name}</option>`).join('')}</select></div><div><label>Approx. group size</label><input name="size"></div></div><div class="row"><div><label>Preferred travel dates</label><input name="dates"></div><div><label>Grade levels</label><input name="grades"></div></div>` : ''}
 <label>${quote ? 'Tell us about your goals' : 'How can we help?'}</label><textarea name="msg"></textarea>
 <button class="btn primary" type="submit">${quote ? 'Request my quote' : 'Send message'}</button>
 <p class="note">Zoho form integration pending. This form does not yet submit.</p>`;
